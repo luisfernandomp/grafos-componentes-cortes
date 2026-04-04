@@ -7,7 +7,7 @@
  * Membros do grupo:
  *   - Luis Fernando de Mesquita Pereira - RA 10410686
  *   - Rafael Santos Lourenço da Silva - RA 10403588
- *   - [Nome Completo 3]
+ *   - Edson Fu - RA 10419137
  *
  * Compilacao (ANSI C):
  *   gcc -ansi -pedantic -Wall -o grafos main.c
@@ -194,28 +194,79 @@ int encontrarArestasCorte(Grafo g, int *origem, int *destino, int *numArestas)
     return 0;
 }
 
+/* --- Verificacao de grafo hamiltoniano --- */
+int Hamiltoniano(Grafo g);
+int buscaCicloHamiltoniano(Grafo g, int v, int visitado[], int contador, int inicio);
+int buscaCicloHamiltoniano(Grafo g, int v, int visitado[], int contador, int inicio)
+{
+    No *p;
+    
+    if (contador == g.ordem)
+    {
+        /* Verifica se existe aresta de volta ao inicio */
+        for (p = g.adj[v]; p != NULL; p = p->prox)
+            if (p->vertice == inicio)
+                return 1;
+        return 0;
+    }
+    
+    for (p = g.adj[v]; p != NULL; p = p->prox)
+    {
+        int viz = p->vertice;
+        if (!visitado[viz])
+        {
+            visitado[viz] = 1;
+            if (buscaCicloHamiltoniano(g, viz, visitado, contador + 1, inicio))
+                return 1;
+            visitado[viz] = 0;
+        }
+    }
+    return 0;
+}
+
+int Hamiltoniano(Grafo g)
+{
+    int visitado[MAX_VERTICES];
+    int i;
+    
+    if (g.ordem==0) return 0;
+    
+    /* Tenta comecar de cada vertice*/
+    for (i=0;i<g.ordem;i++)
+    {
+        int j;
+        for (j =0;j<g.ordem;j++)
+            visitado[j]=0;
+        visitado[i]=1;
+        if (buscaCicloHamiltoniano(g,i,visitado,1,i))
+            return 1;
+    }
+    return 0;
+}
+
+
 void imprimirComponentes(Grafo g)
 {
-    int qtd = quantidadeComponentes(g);
+    int qtd =quantidadeComponentes(g);
     int marcado[MAX_VERTICES] = {0};
-    int atual = 0;
+    int atual =0;
 
-    for (int i = 0; i < g.ordem; i++)
+    for (int i=0; i<g.ordem;i++)
     {
         if (!marcado[i])
         {
             atual++;
-            printf("Componente %d:", atual);
+            printf("Componente %d:",atual);
 
             marcado[i] = 1;
-            printf(" %d", i);
+            printf(" %d",i);
 
             int mudou;
             do
             {
-                mudou = 0;
+                mudou =0;
 
-                for (int j = 0; j < g.ordem; j++)
+                for (int j=0; j<g.ordem; j++)
                 {
                     if (marcado[j])
                     {
@@ -225,9 +276,9 @@ void imprimirComponentes(Grafo g)
 
                             if (!marcado[v])
                             {
-                                marcado[v] = 1;
-                                printf(" %d", v);
-                                mudou = 1;
+                                marcado[v] =1;
+                                printf(" %d",v);
+                                mudou =1;
                             }
                         }
                     }
@@ -239,7 +290,7 @@ void imprimirComponentes(Grafo g)
         }
     }
 
-    printf("Quantidade de componentes conexas: %d\n", qtd);
+    printf("Quantidade de componentes conexas: %d\n",qtd);
 }
 
 void imprimirVerticesCorte(Grafo g)
@@ -285,6 +336,11 @@ int main(void)
     {
         printf("O grafo NAO e conexo.\n");
     }
+    /* --- Verificacao de grafo hamiltoniano --- */
+     if (Hamiltoniano(g))
+       printf("O grafo é hamiltoniano (possui ciclo que visita todos os vertices).\n");
+      else
+        printf("O grafo nao é hamiltoniano.\n");
 
     /* --- Componentes conexas --- */
     imprimirComponentes(g);
