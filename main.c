@@ -44,9 +44,6 @@ int quantidadeComponentes(Grafo g);
 int encontrarVerticesCorte(Grafo g, int *cortes, int *numCortes);
 int encontrarArestasCorte(Grafo g, int *origem, int *destino, int *numArestas);
 
-/* --- Algoritmo hamiltoniano --- */
-int Hamiltoniano(Grafo g);
-
 /* --- Impressao dos resultados (chamada na main) --- */
 void imprimirComponentes(Grafo g);
 void imprimirVerticesCorte(Grafo g);
@@ -357,65 +354,6 @@ int encontrarArestasCorte(Grafo g, int *origem, int *destino, int *numArestas)
     return *numArestas;
 }
 
-/* ------------------------------------------------------------------------- *
- * buscaCicloHamiltoniano (auxiliar)                                         *
- * Backtracking recursivo: a partir do vertice v, tenta visitar todos os    *
- * vertices exatamente uma vez e retornar ao vertice inicial.                *
- * ------------------------------------------------------------------------- */
-static int buscaCicloHamiltoniano(Grafo g, int v, int visitado[], int contador, int inicio)
-{
-    No *p;
-
-    if (contador == g.ordem)
-    {
-        /* Verifica se existe aresta de volta ao inicio */
-        for (p = g.adj[v]; p != NULL; p = p->prox)
-            if (p->vertice == inicio)
-                return 1;
-        return 0;
-    }
-    
-    for (p = g.adj[v]; p != NULL; p = p->prox)
-    {
-        int viz = p->vertice;
-        if (!visitado[viz])
-        {
-            visitado[viz] = 1;
-            if (buscaCicloHamiltoniano(g, viz, visitado, contador + 1, inicio))
-                return 1;
-            visitado[viz] = 0;
-        }
-    }
-
-    return 0;
-}
-
-/* ------------------------------------------------------------------------- *
- * Hamiltoniano                                                               *
- * Verifica se o grafo possui um ciclo hamiltoniano (visita todos os         *
- * vertices exatamente uma vez e retorna ao inicio) usando backtracking.     *
- * Retorna 1 se hamiltoniano, 0 caso contrario.                              *
- * ------------------------------------------------------------------------- */
-int Hamiltoniano(Grafo g)
-{
-    int visitado[MAX_VERTICES];
-    int i;
-    
-    if (g.ordem==0) return 0;
-    
-    /* Tenta comecar de cada vertice*/
-    for (i=0;i<g.ordem;i++)
-    {
-        int j;
-        for (j =0;j<g.ordem;j++)
-            visitado[j]=0;
-        visitado[i]=1;
-        if (buscaCicloHamiltoniano(g,i,visitado,1,i))
-            return 1;
-    }
-    return 0;
-}
-
 
 void imprimirComponentes(Grafo g)
 {
@@ -461,7 +399,6 @@ void imprimirComponentes(Grafo g)
             printf("\n");
         }
     }
-
     printf("Quantidade de componentes conexas: %d\n", qtd);
 }
 
@@ -469,10 +406,8 @@ void imprimirVerticesCorte(Grafo g)
 {
     int cortes[MAX_VERTICES];
     int numCortes, i;
-
     numCortes = 0;
     encontrarVerticesCorte(g, cortes, &numCortes);
-
     printf("Vertices de corte (%d):", numCortes);
     for (i = 0; i < numCortes; i++)
         printf(" %d", cortes[i]);
@@ -484,10 +419,8 @@ void imprimirArestasCorte(Grafo g)
     int origem[MAX_VERTICES];
     int destino[MAX_VERTICES];
     int numArestas, i;
-
     numArestas = 0;
     encontrarArestasCorte(g, origem, destino, &numArestas);
-
     printf("Arestas de corte / pontes (%d):", numArestas);
     for (i = 0; i < numArestas; i++)
         printf(" (%d-%d)", origem[i], destino[i]);
@@ -506,7 +439,6 @@ int main(void)
     adicionarAresta(&g, 1, 4);
     adicionarAresta(&g, 4, 5);
     adicionarAresta(&g, 4, 6);
-
     printf("=== Analise do Grafo ===\n\n");
 
     /* Conexidade */
@@ -518,11 +450,6 @@ int main(void)
     {
         printf("O grafo NAO e conexo.\n");
     }
-    /* --- Verificacao de grafo hamiltoniano --- */
-     if (Hamiltoniano(g))
-       printf("O grafo é hamiltoniano (possui ciclo que visita todos os vertices).\n");
-      else
-        printf("O grafo nao é hamiltoniano.\n");
 
     /* Componentes conexas */
     imprimirComponentes(g);
