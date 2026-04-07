@@ -177,21 +177,112 @@ int quantidadeComponentes(Grafo g)
 
 int encontrarVerticesCorte(Grafo g, int *cortes, int *numCortes)
 {
-    /* TODO: implementar */
-    (void)g;
-    (void)cortes;
+    int C = quantidadeComponentes(g);
     *numCortes = 0;
-    return 0;
+
+    for (int i = 0; i < g.ordem; i++)
+    {
+        int marcado[MAX_VERTICES] = {0};
+        int compSemV = 0;
+
+        marcado[i] = 1; 
+
+        for (int j = 0; j < g.ordem; j++)
+        {
+            if (!marcado[j])
+            {
+                int mudou;
+                compSemV++;
+                marcado[j] = 1;
+                do
+                {
+                    mudou = 0;
+                    for (int k = 0; k < g.ordem; k++)
+                    {
+                        if (k != i && marcado[k])
+                        {
+                            for (No *p = g.adj[k]; p != NULL; p = p->prox)
+                            {
+                                int viz = p->vertice;
+                                if (!marcado[viz])
+                                {
+                                    marcado[viz] = 1;
+                                    mudou = 1;
+                                }
+                            }
+                        }
+                    }
+                } while (mudou);
+            }
+        }
+
+        if (compSemV > C)
+        {
+            cortes[*numCortes] = i;
+            (*numCortes)++;
+        }
+    }
+
+    return *numCortes;
 }
 
 int encontrarArestasCorte(Grafo g, int *origem, int *destino, int *numArestas)
 {
-    /* TODO: implementar */
-    (void)g;
-    (void)origem;
-    (void)destino;
+    int C = quantidadeComponentes(g);
     *numArestas = 0;
-    return 0;
+
+    for (int u = 0; u < g.ordem; u++)
+    {
+        for (No *p = g.adj[u]; p != NULL; p = p->prox)
+        {
+            int v = p->vertice;
+            if (v <= u) continue; 
+
+            int marcado[MAX_VERTICES] = {0};
+            int compSemAresta = 0;
+
+            for (int j = 0; j < g.ordem; j++)
+            {
+                if (!marcado[j])
+                {
+                    int mudou;
+                    compSemAresta++;
+                    marcado[j] = 1;
+                    do
+                    {
+                        mudou = 0;
+                        for (int k = 0; k < g.ordem; k++)
+                        {
+                            if (marcado[k])
+                            {
+                                for (No *q = g.adj[k]; q != NULL; q = q->prox)
+                                {
+                                    int viz = q->vertice;
+
+                                    if ((k == u && viz == v) || (k == v && viz == u))
+                                        continue;
+                                    if (!marcado[viz])
+                                    {
+                                        marcado[viz] = 1;
+                                        mudou = 1;
+                                    }
+                                }
+                            }
+                        }
+                    } while (mudou);
+                }
+            }
+
+            if (compSemAresta > C)
+            {
+                origem[*numArestas] = u;
+                destino[*numArestas] = v;
+                (*numArestas)++;
+            }
+        }
+    }
+
+    return *numArestas;
 }
 
 /* --- Verificacao de grafo hamiltoniano --- */
@@ -298,8 +389,11 @@ void imprimirVerticesCorte(Grafo g)
     int cortes[MAX_VERTICES];
     int numCortes = 0;
     encontrarVerticesCorte(g, cortes, &numCortes);
-    /* TODO: imprimir resultado */
-    printf("Vertices de corte: [TODO]\n");
+
+    printf("Vertices de corte (%d):", numCortes);
+    for (int i = 0; i < numCortes; i++)
+        printf(" %d", cortes[i]);
+    printf("\n");
 }
 
 void imprimirArestasCorte(Grafo g)
@@ -308,8 +402,11 @@ void imprimirArestasCorte(Grafo g)
     int destino[MAX_VERTICES];
     int numArestas = 0;
     encontrarArestasCorte(g, origem, destino, &numArestas);
-    /* TODO: imprimir resultado */
-    printf("Arestas de corte (pontes): [TODO]\n");
+
+    printf("Arestas de corte / pontes (%d):", numArestas);
+    for (int i = 0; i < numArestas; i++)
+        printf(" (%d-%d)", origem[i], destino[i]);
+    printf("\n");
 }
 
 int main(void)
